@@ -61,7 +61,7 @@ export default function useCrud(apiUrl) {
     setLoading(true);
     try {
       const result = await createData(apiUrl, obj);
-      await load();
+      setData((prev) => [...prev, result]);
       return result;
     } catch (err) {
       setError(err.message);
@@ -75,7 +75,9 @@ export default function useCrud(apiUrl) {
     setLoading(true);
     try {
       const result = await updateData(apiUrl, id, obj);
-      await load();
+      setData((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...obj } : item))
+      );
       return result;
     } catch (err) {
       setError(err.message);
@@ -89,7 +91,7 @@ export default function useCrud(apiUrl) {
     setLoading(true);
     try {
       await deleteData(apiUrl, id);
-      await load();
+      setData((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
       setError(err.message);
       throw err;
