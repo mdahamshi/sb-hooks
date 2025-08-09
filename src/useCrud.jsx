@@ -52,7 +52,6 @@ export default function useCrud(apiUrl) {
       const result = await fetchDatas(
         `${apiUrl}?search=${encodeURIComponent(term)}`
       );
-      setData(result);
       setError(null);
       return result;
     } catch (err) {
@@ -96,7 +95,7 @@ export default function useCrud(apiUrl) {
     try {
       const result = await updateData(apiUrl, id, obj);
       setData((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, ...obj } : item))
+        prev.map((item) => (item.id === id ? result : item))
       );
       return result;
     } catch (err) {
