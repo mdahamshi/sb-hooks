@@ -42,8 +42,9 @@ export default function useCrud(apiUrl) {
       return result;
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const loadOne = async (id) => {
@@ -55,8 +56,9 @@ export default function useCrud(apiUrl) {
       return result;
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const create = async (obj) => {
