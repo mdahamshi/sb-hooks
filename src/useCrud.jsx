@@ -39,6 +39,7 @@ export default function useCrud(apiUrl) {
       const result = await fetchDatas(apiUrl);
       setData(result);
       setError(null);
+      return result;
     } catch (err) {
       setError(err.message);
     }
@@ -51,6 +52,7 @@ export default function useCrud(apiUrl) {
       const result = await fetchDataById(apiUrl, id);
       setItem(result);
       setError(null);
+      return result;
     } catch (err) {
       setError(err.message);
     }
