@@ -46,6 +46,22 @@ export default function useCrud(apiUrl) {
       setLoading(false);
     }
   };
+  const search = async (term) => {
+    setLoading(true);
+    try {
+      const result = await fetchDatas(
+        `${apiUrl}?search=${encodeURIComponent(term)}`
+      );
+      setData(result);
+      setError(null);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadOne = async (id) => {
     setLoading(true);
@@ -114,5 +130,6 @@ export default function useCrud(apiUrl) {
     create,
     update,
     remove,
+    search,
   };
 }

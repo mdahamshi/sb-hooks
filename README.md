@@ -68,6 +68,7 @@ export default function BookList() {
 | `create`  | `function` | Create a new item                  |
 | `update`  | `function` | Update an existing item            |
 | `remove`  | `function` | Delete an item                     |
+| `search`  | `function` | Send GET with search query         |
 
 ---
 
