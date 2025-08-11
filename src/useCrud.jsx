@@ -4,14 +4,18 @@ const parseJSON = async (res) => {
   return res.json();
 };
 
-const fetchDatas = (url) => fetch(url, { mode: "cors" }).then(parseJSON);
+const fetchDatas = (url) =>
+  fetch(url, { mode: "cors", credentials: "include" }).then(parseJSON);
 const fetchDataById = (url, id) =>
-  fetch(`${url}/${id}`, { mode: "cors" }).then(parseJSON);
+  fetch(`${url}/${id}`, { mode: "cors", credentials: "include" }).then(
+    parseJSON
+  );
 const createData = (url, data) =>
   fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     mode: "cors",
+    credentials: "include",
     body: JSON.stringify(data),
   }).then(parseJSON);
 const updateData = (url, id, data) =>
@@ -19,10 +23,15 @@ const updateData = (url, id, data) =>
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     mode: "cors",
+    credentials: "include",
     body: JSON.stringify(data),
   }).then(parseJSON);
 const deleteData = (url, id) =>
-  fetch(`${url}/${id}`, { method: "DELETE", mode: "cors" }).then((res) => {
+  fetch(`${url}/${id}`, {
+    method: "DELETE",
+    mode: "cors",
+    credentials: "include",
+  }).then((res) => {
     if (!res.ok) throw new Error("Delete failed");
     return true;
   });
@@ -33,10 +42,10 @@ export default function useCrud(apiUrl) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const load = async () => {
+  const load = async (custom) => {
     setLoading(true);
     try {
-      const result = await fetchDatas(apiUrl);
+      const result = await fetchDatas(custom || apiUrl);
       setData(result);
       setError(null);
       return result;
@@ -94,9 +103,7 @@ export default function useCrud(apiUrl) {
     setLoading(true);
     try {
       const result = await updateData(apiUrl, id, obj);
-      setData((prev) =>
-        prev.map((item) => (item.id === id ? result : item))
-      );
+      setData((prev) => prev.map((item) => (item.id === id ? result : item)));
       return result;
     } catch (err) {
       setError(err.message);
