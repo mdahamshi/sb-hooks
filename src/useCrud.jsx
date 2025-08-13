@@ -55,11 +55,11 @@ export default function useCrud(apiUrl) {
       setLoading(false);
     }
   };
-  const search = async (term) => {
+  const search = async (term, custom) => {
     setLoading(true);
     try {
       const result = await fetchDatas(
-        `${apiUrl}?search=${encodeURIComponent(term)}`
+        `${custom || apiUrl}?search=${encodeURIComponent(term)}`
       );
       setError(null);
       return result;
@@ -71,10 +71,10 @@ export default function useCrud(apiUrl) {
     }
   };
 
-  const loadOne = async (id) => {
+  const loadOne = async (id, custom) => {
     setLoading(true);
     try {
-      const result = await fetchDataById(apiUrl, id);
+      const result = await fetchDataById(custom || apiUrl, id);
       setItem(result);
       setError(null);
       return result;
@@ -85,10 +85,10 @@ export default function useCrud(apiUrl) {
     }
   };
 
-  const create = async (obj) => {
+  const create = async (obj, custom) => {
     setLoading(true);
     try {
-      const result = await createData(apiUrl, obj);
+      const result = await createData(custom || apiUrl, obj);
       setData((prev) => [...prev, result]);
       return result;
     } catch (err) {
@@ -99,10 +99,10 @@ export default function useCrud(apiUrl) {
     }
   };
 
-  const update = async (id, obj) => {
+  const update = async (id, obj, custom) => {
     setLoading(true);
     try {
-      const result = await updateData(apiUrl, id, obj);
+      const result = await updateData(custom || apiUrl, id, obj);
       setData((prev) => prev.map((item) => (item.id === id ? result : item)));
       return result;
     } catch (err) {
@@ -113,10 +113,10 @@ export default function useCrud(apiUrl) {
     }
   };
 
-  const remove = async (id) => {
+  const remove = async (id, custom) => {
     setLoading(true);
     try {
-      await deleteData(apiUrl, id);
+      await deleteData(custom || apiUrl, id);
       setData((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
       setError(err.message);
