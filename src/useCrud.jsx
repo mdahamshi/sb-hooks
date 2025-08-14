@@ -1,130 +1,120 @@
 import { useState } from "react";
+
+// Smart fetch parser: always returns { data, error, status }
 const parseJSON = async (res) => {
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (_) {}
+  if (!res.ok) {
+    return {
+      data: null,
+      error: data?.error || res.statusText,
+      status: res.status,
+    };
+  }
+  return { data, error: null, status: res.status };
 };
 
+// Basic CRUD fetch functions
 const fetchDatas = (url) =>
   fetch(url, { mode: "cors", credentials: "include" }).then(parseJSON);
 const fetchDataById = (url, id) =>
   fetch(`${url}/${id}`, { mode: "cors", credentials: "include" }).then(
     parseJSON
   );
-const createData = (url, data) =>
+const createData = (url, body) =>
   fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     mode: "cors",
     credentials: "include",
-    body: JSON.stringify(data),
+    body: JSON.stringify(body),
   }).then(parseJSON);
-const updateData = (url, id, data) =>
+const updateData = (url, id, body) =>
   fetch(`${url}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     mode: "cors",
     credentials: "include",
-    body: JSON.stringify(data),
+    body: JSON.stringify(body),
   }).then(parseJSON);
 const deleteData = (url, id) =>
   fetch(`${url}/${id}`, {
     method: "DELETE",
     mode: "cors",
     credentials: "include",
-  }).then((res) => {
-    if (!res.ok) throw new Error("Delete failed");
-    return true;
-  });
+  }).then(parseJSON);
 
+// useCrud Hook
 export default function useCrud(apiUrl) {
   const [data, setData] = useState([]);
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const load = async (custom) => {
+  const handleAction = async (action) => {
     setLoading(true);
+    setError(null);
     try {
-      const result = await fetchDatas(custom || apiUrl);
-      setData(result);
-      setError(null);
+      const result = await action();
+      if (result.error) setError(result.error);
       return result;
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const search = async (term, custom) => {
-    setLoading(true);
-    try {
-      const result = await fetchDatas(
-        `${custom || apiUrl}?search=${encodeURIComponent(term)}`
-      );
-      setError(null);
-      return result;
-    } catch (err) {
-      setError(err.message);
-      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const loadOne = async (id, custom) => {
-    setLoading(true);
-    try {
-      const result = await fetchDataById(custom || apiUrl, id);
-      setItem(result);
-      setError(null);
-      return result;
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const load = (custom) =>
+    handleAction(async () => {
+      const { data, error, status } = await fetchDatas(custom || apiUrl);
+      if (!error) setData(data);
+      return { data, error, status };
+    });
 
-  const create = async (obj, custom) => {
-    setLoading(true);
-    try {
-      const result = await createData(custom || apiUrl, obj);
-      setData((prev) => [...prev, result]);
-      return result;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const search = (term, custom) =>
+    handleAction(() =>
+      fetchDatas(`${custom || apiUrl}?search=${encodeURIComponent(term)}`)
+    );
 
-  const update = async (id, obj, custom) => {
-    setLoading(true);
-    try {
-      const result = await updateData(custom || apiUrl, id, obj);
-      setData((prev) => prev.map((item) => (item.id === id ? result : item)));
-      return result;
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loadOne = (id, custom) =>
+    handleAction(async () => {
+      const { data, error, status } = await fetchDataById(custom || apiUrl, id);
+      if (!error) setItem(data);
+      return { data, error, status };
+    });
 
-  const remove = async (id, custom) => {
-    setLoading(true);
-    try {
-      await deleteData(custom || apiUrl, id);
-      setData((prev) => prev.filter((item) => item.id !== id));
-    } catch (err) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const create = (obj, custom) =>
+    handleAction(async () => {
+      const {
+        data: newItem,
+        error,
+        status,
+      } = await createData(custom || apiUrl, obj);
+      if (!error) setData((prev) => [...prev, newItem]);
+      return { data: newItem, error, status };
+    });
+
+  const update = (id, obj, custom) =>
+    handleAction(async () => {
+      const {
+        data: updatedItem,
+        error,
+        status,
+      } = await updateData(custom || apiUrl, id, obj);
+      if (!error)
+        setData((prev) =>
+          prev.map((item) => (item.id === id ? updatedItem : item))
+        );
+      return { data: updatedItem, error, status };
+    });
+
+  const remove = (id, custom) =>
+    handleAction(async () => {
+      const { error, status } = await deleteData(custom || apiUrl, id);
+      if (!error) setData((prev) => prev.filter((item) => item.id !== id));
+      return { data: null, error, status };
+    });
 
   return {
     data,
