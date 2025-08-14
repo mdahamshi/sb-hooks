@@ -115,7 +115,7 @@ export default function useCrud(apiUrl) {
       if (!error) setData((prev) => prev.filter((item) => item.id !== id));
       return { data: null, error, status };
     });
-
+  const clearError = () => setError(null);
   return {
     data,
     item,
@@ -127,5 +127,6 @@ export default function useCrud(apiUrl) {
     update,
     remove,
     search,
+    clearError,
   };
 }
